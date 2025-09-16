@@ -1,0 +1,74 @@
+<?php declare(strict_types=1);
+
+/**
+ * Copyright (C) Brian Faust
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace Cline\Discovery\Provider;
+
+use Cline\Discovery\Support\Bus\Discovery\HandlerDiscovery;
+use Illuminate\Contracts\Bus\Dispatcher;
+use Illuminate\Support\ServiceProvider;
+
+use function config;
+use function file_exists;
+
+/**
+ * @author Brian Faust <brian@cline.sh>
+ */
+final class BusServiceProvider extends ServiceProvider
+{
+    public function boot(): void
+    {
+        // Map handlers via Laravel Bus, preferring cached maps, falling back to local discovery in dev
+        $commandMap = self::loadCachedHandlers('command-handlers') ?? $this->discoverIfLocal('command-handlers');
+        $queryMap = self::loadCachedHandlers('query-handlers') ?? $this->discoverIfLocal('query-handlers');
+
+        $map = $commandMap + $queryMap; // command map wins on key collision
+
+        if ($map === []) {
+            return;
+        }
+
+        $dispatcher = $this->app->make(Dispatcher::class);
+        $dispatcher->map($map);
+    }
+
+    /**
+     * @return null|array<string, string>
+     */
+    private static function loadCachedHandlers(string $type): ?array
+    {
+        $path = match ($type) {
+            'command-handlers' => (string) config('discovery.paths.command_handlers'),
+            'query-handlers' => (string) config('discovery.paths.query_handlers'),
+            default => (string) config('discovery.paths.bootstrap_cache')."/{$type}.php",
+        };
+
+        if (file_exists($path)) {
+            /** @var array<string, string> $map */
+            $map = require $path;
+
+            return $map;
+        }
+
+        return null;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function discoverIfLocal(string $type): array
+    {
+        if (!$this->app->isLocal()) {
+            return [];
+        }
+
+        $maps = HandlerDiscovery::discover();
+
+        return $type === 'command-handlers' ? $maps['commands'] : $maps['queries'];
+    }
+}

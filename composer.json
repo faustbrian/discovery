@@ -1,0 +1,49 @@
+{
+    "name": "cline/discovery",
+    "authors": [
+        {
+            "name": "Brian Faust",
+            "email": "brian@cline.sh"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "illuminate/config": "^12.0",
+        "illuminate/console": "^12.0",
+        "illuminate/contracts": "^12.0",
+        "illuminate/support": "^12.0",
+        "spatie/php-structure-discoverer": "^2.3.1"
+    },
+    "require-dev": {
+        "cline/php-cs-fixer": "^1.0",
+        "ergebnis/composer-normalize": "^2.48.2",
+        "orchestra/testbench": "^10.6",
+        "pestphp/pest": "^4.1"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Cline\\Discovery\\": "src/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "ergebnis/composer-normalize": true,
+            "pestphp/pest-plugin": true
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Cline\\Discovery\\Providers\\BusServiceProvider",
+                "Cline\\Discovery\\Providers\\ConsoleDiscoveryServiceProvider",
+                "Cline\\Discovery\\Providers\\DomainEntityServiceProvider",
+                "Cline\\Discovery\\Providers\\EventListenerServiceProvider",
+                "Cline\\Discovery\\Providers\\EventSubscriberServiceProvider",
+                "Cline\\Discovery\\Providers\\LivewireAutoDiscoveryServiceProvider",
+                "Cline\\Discovery\\Providers\\PolicyServiceProvider"
+            ]
+        }
+    }
+}
